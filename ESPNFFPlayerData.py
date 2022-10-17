@@ -41,30 +41,38 @@ def load_player_data(matchup_json, week, league_size, roster_size):
     # Loop through each team
     for team in range(0, league_size):
         # Loop through each roster slot in each team
-        for slot in range(0, 16):
-            
-            # Append the week number to a list for each entry for each team
-            weeks.append(week)
+        
+        for slot in range(0, roster_size):
+            try:
+                # Append the week number to a list for each entry for each team
+                weeks.append(week)
+                # Append player name, player fantasy team, and player ro
+                player_name.append(matchup_json['teams'][team]['roster']['entries'][slot]['playerPoolEntry']['player']['fullName'])
+                player_fantasy_team.append(matchup_json['teams'][team]['id'])
+                player_roster_slot.append(matchup_json['teams'][team]['roster']['entries'][slot]['lineupSlotId'])
+                    
 
-            # Append player name, player fantasy team, and player ro
-            player_name.append(matchup_json['teams'][team]['roster']['entries'][slot]['playerPoolEntry']['player']['fullName'])
-            player_fantasy_team.append(matchup_json['teams'][team]['id'])
-            player_roster_slot.append(matchup_json['teams'][team]['roster']['entries'][slot]['lineupSlotId'])
+                # Loop through each statistic set for each roster slot for each team
+                # to get projected and actual scores
+                for stat in matchup_json['teams'][team]['roster']['entries'][slot]['playerPoolEntry']['player']['stats']:
+                    if stat['scoringPeriodId'] != week:
+                        continue
+                    if stat['statSourceId'] == 0:
+                        act = stat['appliedTotal']
+                    elif stat['statSourceId'] == 1:
+                        proj = stat['appliedTotal']
+                    else:
+                        print('Error')
 
-            # Loop through each statistic set for each roster slot for each team
-            # to get projected and actual scores
-            for stat in matchup_json['teams'][team]['roster']['entries'][slot]['playerPoolEntry']['player']['stats']:
-                if stat['scoringPeriodId'] != week:
-                    continue
-                if stat['statSourceId'] == 0:
-                    act = stat['appliedTotal']
-                elif stat['statSourceId'] == 1:
-                    proj = stat['appliedTotal']
-                else:
-                    print('Error')
+                player_score_act.append(act)
+                player_score_proj.append(proj)
+            except:
+                player_name.append("")
+                player_fantasy_team.append("")
+                player_roster_slot.append("")
+                player_score_act.append(0)
+                player_score_proj.append(0)
 
-            player_score_act.append(act)
-            player_score_proj.append(proj)
 
     # Put the lists into a dictionary
     player_dict = {
@@ -77,7 +85,7 @@ def load_player_data(matchup_json, week, league_size, roster_size):
     }
     
     # Transform the dictionary into a DataFrame
-    df = pd.DataFrame(player_dict)
+    df = pd.DataFrame.from_dict(player_dict)
     
     # Initialize empty column for PlayerRosterSlot
     df['PlayerRosterSlot'] = ""
@@ -114,9 +122,11 @@ def load_player_data(matchup_json, week, league_size, roster_size):
             
         if df['PlayerRosterSlotId'][slot] == 21:
             df['PlayerRosterSlot'][slot] = 'IR'
+        
+        if df['PlayerRosterSlotId'][slot] == '':
+             df['PlayerRosterSlot'][slot] = 'NA'
     
-    df.drop(df['PlayerRosterSlotId'])
-    
+
     
     
     return df
@@ -169,10 +179,10 @@ def load_team_names(df, league_id, year, week, swid, espn_s2):
 
     # Merge DataFrames to get team names instead of ids and rename Name column to Name1
     df = df.merge(team_df, on=['PlayerFantasyTeam'], how='left')
-    df.drop(df['PlayerFantasyTeam'])
     df = df.rename(columns={'Name':'PlayerFantasyTeamName'})
     
     
     
     return df
     
+
