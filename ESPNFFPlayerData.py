@@ -125,7 +125,7 @@ def load_player_data(league_json, week):
         if df['PlayerRosterSlotId'][slot] == '':
              df['PlayerRosterSlot'][slot] = 'NA'
     
-
+    df = df.drop(columns=['PlayerRosterSlotId'])
     
     
     return df
