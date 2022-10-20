@@ -1,32 +1,31 @@
+import requests
+import pandas as pd
+import numpy as np
+
+
 def load_league(league_id, year, week, swid, espn_s2):
     '''
     Load the matchup data for a given week, year with the
     proper cookie parameters 
     
     '''
-    import requests
-    import pandas as pd
-    import numpy as np
+
     
     url = f"https://fantasy.espn.com/apis/v3/games/ffl/seasons/{year}/segments/0/leagues/{league_id}"
 
     # Make a request to the ESPN API
-    matchup_response = requests.get(url + '?view=mMatchup&view=mMatchupScore',
+    league_response = requests.get(url + '?view=mMatchup&view=mMatchupScore',
                        params={'scoringPeriodId': week, 'matchupPeriodId': week},
                        cookies={"SWID": swid, "espn_s2": espn_s2})
 
 
 
     # Transform response into a JSON string
-    matchup_json = matchup_response.json()
+    league_json = league_response.json()
     
-    return matchup_json
+    return league_json
 
-def load_player_data(matchup_json, week, league_size, roster_size):
-    
-    import requests
-    import pandas as pd
-    import numpy as np
+def load_player_data(league_json, week):
     
 
     # Initialize empty list for player scores, names, roster slot, fantasy team, week
@@ -39,22 +38,22 @@ def load_player_data(matchup_json, week, league_size, roster_size):
 
 
     # Loop through each team
-    for team in range(0, league_size):
-        # Loop through each roster slot in each team
+    for team in range(0, len(league_json['teams'])):
         
-        for slot in range(0, roster_size):
+        # Loop through each roster slot in each team
+        for slot in range(0, len(league_json['teams'][team]['roster']['entries'])):
             try:
                 # Append the week number to a list for each entry for each team
                 weeks.append(week)
                 # Append player name, player fantasy team, and player ro
-                player_name.append(matchup_json['teams'][team]['roster']['entries'][slot]['playerPoolEntry']['player']['fullName'])
-                player_fantasy_team.append(matchup_json['teams'][team]['id'])
-                player_roster_slot.append(matchup_json['teams'][team]['roster']['entries'][slot]['lineupSlotId'])
+                player_name.append(league_json['teams'][team]['roster']['entries'][slot]['playerPoolEntry']['player']['fullName'])
+                player_fantasy_team.append(league_json['teams'][team]['id'])
+                player_roster_slot.append(league_json['teams'][team]['roster']['entries'][slot]['lineupSlotId'])
                     
 
                 # Loop through each statistic set for each roster slot for each team
                 # to get projected and actual scores
-                for stat in matchup_json['teams'][team]['roster']['entries'][slot]['playerPoolEntry']['player']['stats']:
+                for stat in league_json['teams'][team]['roster']['entries'][slot]['playerPoolEntry']['player']['stats']:
                     if stat['scoringPeriodId'] != week:
                         continue
                     if stat['statSourceId'] == 0:
@@ -136,10 +135,6 @@ def load_team_names(df, league_id, year, week, swid, espn_s2):
     Load the fantasy owner team names and join them to our player DataFrame
     
     '''
-    
-    import requests
-    import pandas as pd
-    import numpy as np
     
     
     # Define the URL with our parameters
