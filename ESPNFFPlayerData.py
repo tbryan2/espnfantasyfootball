@@ -156,32 +156,61 @@ def load_team_names(df, league_id, year, week, swid, espn_s2):
     
     # Transform the response into a JSON
     team_json = team_response.json()
-    
-    # Normalize JSON into DataFrame
-    team_df = pd.json_normalize(team_json['teams'])
-    
-    # Choose column names
-    team_column_names = {
-    'id':'PlayerFantasyTeam',
-    'location':'Name1',
-    'nickname':'Name2'
-    }
 
-    # Reindex based on column names
-    team_df = team_df.reindex(columns=team_column_names).rename(columns=team_column_names)
+    # Initialize empty list for team names and team ids
+    team_id = []
+    team_primary_owner = []
+    team_location = []
+    team_nickname = []
+    owner_first_name = []
+    owner_last_name = []
+    team_cookie = []
+
+    # Loop through each team in the JSON
+    for team in range(0, len(team_json['teams'])):
+        # Append the team id and team name to the list
+        team_id.append(team_json['teams'][team]['id'])
+        team_primary_owner.append(team_json['teams'][team]['primaryOwner'])
+        team_location.append(team_json['teams'][team]['location'])
+        team_nickname.append(team_json['teams'][team]['nickname'])
+        owner_first_name.append(team_json['members'][team]['firstName'])
+        owner_last_name.append(team_json['members'][team]['lastName'])
+        team_cookie.append(team_json['members'][team]['id'])
+    
+    
+    # Create team DataFrame
+    team_df = pd.DataFrame({
+    'PlayerFantasyTeam': team_id,
+    'TeamPrimaryOwner': team_primary_owner,
+    'Location': team_location,
+    'Nickname': team_nickname,
+    })
+
+    # Create owner DataFrame
+    owner_df = pd.DataFrame({
+    'OwnerFirstName': owner_first_name,
+    'OwnerLastName': owner_last_name,
+    'TeamPrimaryOwner': team_cookie
+    })
+
+    # Merge the team and owner DataFrames on the TeamPrimaryOwner column
+    team_df = pd.merge(team_df, owner_df, on='TeamPrimaryOwner', how='left')
+
+    # Filter team_df to only include PlayerFantasyTeam, Location, Nickname, OwnerFirstName, and OwnerLastName
+    team_df = team_df[['PlayerFantasyTeam', 'Location', 'Nickname', 'OwnerFirstName', 'OwnerLastName']]
     
     # Concatenate the two name columns
-    team_df['Name'] = team_df['Name1'] + ' ' + team_df['Name2']
+    team_df['TeamName'] = team_df['Location'] + ' ' + team_df['Nickname']
+
+    # Create a column for full name
+    team_df['FullName'] = team_df['OwnerFirstName'] + ' ' + team_df['OwnerLastName']
 
     # Drop all columns except id and Name
-    team_df = team_df.filter(['PlayerFantasyTeam', 'Name'])
+    team_df = team_df.filter(['PlayerFantasyTeam', 'TeamName', 'FullName'])
     
-
     # Merge DataFrames to get team names instead of ids and rename Name column to Name1
     df = df.merge(team_df, on=['PlayerFantasyTeam'], how='left')
     df = df.rename(columns={'Name':'PlayerFantasyTeamName'})
-    
-    
     
     return df
     
