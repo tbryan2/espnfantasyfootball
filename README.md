@@ -1,5 +1,5 @@
 # ESPN-API
-[Video Tutorial](https://youtu.be/8W-NuLjbzGI)
+[Video Tutorial](https://youtu.be/m9Qs1kk4lOo)
 
 ## Parameters
 
@@ -31,14 +31,9 @@ league = load_league(league_id, year, week, swid, espn_s2)
 2. Feed the league JSON variable into the load_player_data function (this returns a pandas DataFrame):
 
 ```
-# Define league_size (how many fantasy players in your league)
-league_size = 10
-
-# Define roster_size (how many players per roster)
-roster_size = 16
 
 # Feed parameters into load_player_data function
-df = load_player_data(league, week, league_size, roster_size)
+df = load_player_data(league, week)
 ```
 3. Before manipulating the DataFrame returned from the last function, run load_team_names to replace generic team ids with actual team names:
 ```
