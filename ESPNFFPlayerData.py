@@ -42,35 +42,29 @@ def load_player_data(league_json, week):
         
         # Loop through each roster slot in each team
         for slot in range(0, len(league_json['teams'][team]['roster']['entries'])):
-            try:
-                # Append the week number to a list for each entry for each team
-                weeks.append(week)
-                # Append player name, player fantasy team, and player ro
-                player_name.append(league_json['teams'][team]['roster']['entries'][slot]['playerPoolEntry']['player']['fullName'])
-                player_fantasy_team.append(league_json['teams'][team]['id'])
-                player_roster_slot.append(league_json['teams'][team]['roster']['entries'][slot]['lineupSlotId'])
-                    
+            # Append the week number to a list for each entry for each team
+            weeks.append(week)
+            # Append player name, player fantasy team, and player ro
+            player_name.append(league_json['teams'][team]['roster']['entries'][slot]['playerPoolEntry']['player']['fullName'])
+            player_fantasy_team.append(league_json['teams'][team]['id'])
+            player_roster_slot.append(league_json['teams'][team]['roster']['entries'][slot]['lineupSlotId'])
+                
 
-                # Loop through each statistic set for each roster slot for each team
-                # to get projected and actual scores
-                for stat in league_json['teams'][team]['roster']['entries'][slot]['playerPoolEntry']['player']['stats']:
-                    if stat['scoringPeriodId'] != week:
-                        continue
-                    if stat['statSourceId'] == 0:
-                        act = stat['appliedTotal']
-                    elif stat['statSourceId'] == 1:
-                        proj = stat['appliedTotal']
-                    else:
-                        print('Error')
+            # Loop through each statistic set for each roster slot for each team
+            # to get projected and actual scores
+            for stat in league_json['teams'][team]['roster']['entries'][slot]['playerPoolEntry']['player']['stats']:
+                if stat['scoringPeriodId'] != week:
+                    continue
+                if stat['statSourceId'] == 0:
+                    act = stat['appliedTotal']
+                elif stat['statSourceId'] == 1:
+                    proj = stat['appliedTotal']
+                else:
+                    print('Error')
 
-                player_score_act.append(act)
-                player_score_proj.append(proj)
-            except:
-                player_name.append("")
-                player_fantasy_team.append("")
-                player_roster_slot.append("")
-                player_score_act.append(0)
-                player_score_proj.append(0)
+            player_score_act.append(act)
+            player_score_proj.append(proj)
+
 
 
     # Put the lists into a dictionary
