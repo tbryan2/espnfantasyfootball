@@ -20,13 +20,18 @@ class FantasyLeague:
         '': 'NA'
     }
 
-    def __init__(self, league_id, year, swid, espn_s2):
+    def __init__(self, league_id, year, espn_s2, swid):
         self.league_id = league_id
         self.year = year
-        self.swid = swid
         self.espn_s2 = espn_s2
+        self.swid = swid
+        self.base_url = f"https://fantasy.espn.com/apis/v3/games/ffl/seasons/{self.year}/segments/0/leagues/{self.league_id}"
+        self.cookies = {
+            "swid": self.swid,
+            "espn_s2": self.espn_s2
+        }
+        self.matchup_df = None
         self.team_df = None
-        self.df = None
 
     def make_request(self, url, params, view):
         '''
@@ -207,3 +212,95 @@ class FantasyLeague:
         self.df = pd.concat(dataframes)
 
         return self.df
+    
+    def get_matchup_data(self, week=None):
+        if week is None:
+            weeks = list(range(1, 18))  # Weeks 1 through 17
+        else:
+            weeks = [week]
+
+        all_matchup_data = []
+
+        for week in weeks:
+            # Pull team and matchup data from the URL
+            matchup_response = requests.get(self.base_url,
+                                            params={"leagueId": self.league_id,
+                                                    "seasonId": self.year,
+                                                    "matchupPeriodId": week,
+                                                    "view": "mMatchup"},
+                                            cookies=self.cookies)
+
+            team_response = requests.get(self.base_url,
+                                         params={"leagueId": self.league_id,
+                                                 "seasonId": self.year,
+                                                 "matchupPeriodId": week,
+                                                 "view": "mTeam"},
+                                         cookies=self.cookies)
+
+            # Transform the response into a json
+            matchup_json = matchup_response.json()
+            team_json = team_response.json()
+
+            # Transform both of the json outputs into DataFrames
+            matchup_df = pd.json_normalize(matchup_json['schedule'])
+            team_df = pd.json_normalize(team_json['teams'])
+
+            # Define the column names needed
+            matchup_column_names = {
+                'matchupPeriodId': 'Week',
+                'away.teamId': 'Team1',
+                'away.totalPoints': 'Score1',
+                'home.teamId': 'Team2',
+                'home.totalPoints': 'Score2',
+            }
+
+            team_column_names = {
+                'id': 'id',
+                'location': 'Name1',
+                'nickname': 'Name2'
+            }
+
+           # Reindex based on column names defined above
+            matchup_df = matchup_df.reindex(columns=matchup_column_names).rename(
+                columns=matchup_column_names)
+            team_df = team_df.reindex(columns=team_column_names).rename(
+                columns=team_column_names)
+
+            # Add a new column for regular/playoff game based on week number
+            matchup_df['Type'] = ['Regular' if week <=
+                                  13 else 'Playoff' for week in matchup_df['Week']]
+
+            # Concatenate the two name columns
+            team_df['Name'] = team_df['Name1'] + ' ' + team_df['Name2']
+
+            # Drop all columns except id and Name
+            team_df = team_df.filter(['id', 'Name'])
+
+            # (1) Rename Team1 column to id
+            matchup_df = matchup_df.rename(columns={"Team1": "id"})
+
+            # (1) Merge DataFrames to get team names instead of ids and rename Name column to Name1
+            matchup_df = matchup_df.merge(team_df, on=['id'], how='left')
+            matchup_df = matchup_df.rename(columns={'Name': 'Name1'})
+
+            # (1) Drop the id column and reorder columns
+            matchup_df = matchup_df[['Week', 'Name1',
+                                     'Score1', 'Team2', 'Score2', 'Type']]
+
+            # (2) Rename Team1 column to id
+            matchup_df = matchup_df.rename(columns={"Team2": "id"})
+
+            # (2) Merge DataFrames to get team names instead of ids and rename Name column to Name2
+            matchup_df = matchup_df.merge(team_df, on=['id'], how='left')
+            matchup_df = matchup_df.rename(columns={'Name': 'Name2'})
+
+            # (2) Drop the id column and reorder columns
+            matchup_df = matchup_df[['Week', 'Name1',
+                                     'Score1', 'Name2', 'Score2', 'Type']]
+
+            all_matchup_data.append(matchup_df)
+
+        self.matchup_df = pd.concat(all_matchup_data, ignore_index=True)
+
+        return self.matchup_df
+
