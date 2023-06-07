@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='espnfantasyfootball',
-    version='0.1.0',
+    version='0.1.1',
     description='A Python package to interact with ESPN Fantasy Football data',
     url='https://github.com/tbryan2/espnfantasyfootball',
     author='Tim Bryan',
