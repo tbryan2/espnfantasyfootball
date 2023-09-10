@@ -11,7 +11,7 @@ league = espn.FantasyLeague(league_id=LEAGUE_ID, year=2023,
                             swid=SWID, espn_s2=ESPN_S2)
 
 player_data = league.get_league_data()
-player_data.to_csv('player_data.csv', index=False)
+player_data.to_csv('output/player_data.csv', index=False)
 
 matchup_data = league.get_matchup_data()
-matchup_data.to_csv('matchup_data.csv', index=False)
+matchup_data.to_csv('output/matchup_data.csv', index=False)
