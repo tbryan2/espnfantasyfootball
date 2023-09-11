@@ -149,9 +149,19 @@ class FantasyLeague:
             team_primary_owner.append(team_json['teams'][team]['primaryOwner'])
             team_location.append(team_json['teams'][team]['location'])
             team_nickname.append(team_json['teams'][team]['nickname'])
-            owner_first_name.append(team_json['members'][team]['firstName'])
-            owner_last_name.append(team_json['members'][team]['lastName'])
-            team_cookie.append(team_json['members'][team]['id'])
+            
+            # Find the owner's first and last name based on the primaryOwner ID
+            owner_id = team_json['teams'][team]['primaryOwner']
+            owner_info = next((member for member in team_json['members'] if member['id'] == owner_id), None)
+        
+            if owner_info:
+                owner_first_name.append(owner_info['firstName'])
+                owner_last_name.append(owner_info['lastName'])
+                team_cookie.append(owner_info['id'])
+            else:
+                owner_first_name.append(None)
+                owner_last_name.append(None)
+                team_cookie.append(None)
 
         # Create team DataFrame
         team_df = pd.DataFrame({
