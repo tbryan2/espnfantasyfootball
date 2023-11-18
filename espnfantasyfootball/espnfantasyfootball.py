@@ -136,29 +136,35 @@ class FantasyLeague:
         # Initialize empty list for team names and team ids
         team_id = []
         team_primary_owner = []
-        team_location = []
-        team_nickname = []
+        team_name = []
         owner_first_name = []
         owner_last_name = []
         team_cookie = []
+
+        members = {member['id']: {'firstName': member['firstName'], 'lastName': member['lastName']} for member in team_json['members']}
 
         # Loop through each team in the JSON
         for team in range(0, len(team_json['teams'])):
             # Append the team id and team name to the list
             team_id.append(team_json['teams'][team]['id'])
-            team_primary_owner.append(team_json['teams'][team]['primaryOwner'])
-            team_location.append(team_json['teams'][team]['location'])
-            team_nickname.append(team_json['teams'][team]['nickname'])
-            owner_first_name.append(team_json['members'][team]['firstName'])
-            owner_last_name.append(team_json['members'][team]['lastName'])
+
+            primary_owner_id = team_json['teams'][team]['primaryOwner']
+            team_primary_owner.append(primary_owner_id)
+            owner_first_name.append(members[primary_owner_id]['firstName'])
+            owner_last_name.append(members[primary_owner_id]['lastName'])
+            
+            # Team name defined by user
+            team_name.append(team_json['teams'][team]['name'])
+            
             team_cookie.append(team_json['members'][team]['id'])
+
+        # TeamName, Username
 
         # Create team DataFrame
         team_df = pd.DataFrame({
             'PlayerFantasyTeam': team_id,
             'TeamPrimaryOwner': team_primary_owner,
-            'Location': team_location,
-            'Nickname': team_nickname,
+            'TeamName': team_name
         })
 
         # Create owner DataFrame
@@ -172,11 +178,7 @@ class FantasyLeague:
         team_df = pd.merge(team_df, owner_df, on='TeamPrimaryOwner', how='left')
 
         # Filter team_df to only include PlayerFantasyTeam, Location, Nickname, OwnerFirstName, and OwnerLastName
-        team_df = team_df[['PlayerFantasyTeam', 'Location',
-                        'Nickname', 'OwnerFirstName', 'OwnerLastName']]
-
-        # Concatenate the two name columns
-        team_df['TeamName'] = team_df['Location'] + ' ' + team_df['Nickname']
+        team_df = team_df[['PlayerFantasyTeam', 'TeamName', 'OwnerFirstName', 'OwnerLastName']]
 
         # Create a column for full name
         team_df['FullName'] = team_df['OwnerFirstName'] + \
@@ -256,8 +258,7 @@ class FantasyLeague:
 
             team_column_names = {
                 'id': 'id',
-                'location': 'Name1',
-                'nickname': 'Name2'
+                'name': 'Name',
             }
 
            # Reindex based on column names defined above
@@ -271,7 +272,7 @@ class FantasyLeague:
                                   13 else 'Playoff' for week in matchup_df['Week']]
 
             # Concatenate the two name columns
-            team_df['Name'] = team_df['Name1'] + ' ' + team_df['Name2']
+            #team_df['Name'] = team_df['Name1'] + ' ' + team_df['Name2']
 
             # Drop all columns except id and Name
             team_df = team_df.filter(['id', 'Name'])
