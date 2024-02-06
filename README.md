@@ -51,13 +51,13 @@ Now that we have the league object created, we can pull data. You can pull playe
 |------|--------------------------|--------|-----------------------|--------|---------|
 | 0    | Edinburgh  | 93.49  | The Masked Singers    | 135.95 | Regular |
 | 1    | Happy Hanukkah           | 146.31 | The Bros         | 130.68 | Regular |
-| 2    | Titsburgh Feelers        | 145.97 | Hooked on a Thielen   | 181.15 | Regular |
+| 2    | Pittsburgh Steelers        | 145.97 | Hooked on a Thielen   | 181.15 | Regular |
 | 3    | Gonq Unicorns            | 153.85 | 3rd Place Pays Out    | 89.58  | Regular |
 | 4    | Tame Klonger             | 111.03 | Pfizer Save us        | 149.84 | Regular |
 | ...  | ...                      | ...    | ...                   | ...    | ...     |
 | 1287 | Gonq Unicorns            | 128.72 | The Masked Singers    | 119.15 | Playoff |
 | 1288 | Hooked on a Thielen      | 114.22 | Pfizer Save us        | 168.56 | Playoff |
-| 1289 | Titsburgh Feelers        | 160.07 | Tame Klonger          | 143.83 | Playoff |
+| 1289 | Pittsburgh Steelers       | 160.07 | Tame Klonger          | 143.83 | Playoff |
 | 1290 | 3rd Place Pays Out       | 70.81  | Edinburgh  | 123.26 | Playoff |
 | 1291 | The Bros             | 84.00  | Happy Hanukkah        | 155.73 | Playoff |
 ```
